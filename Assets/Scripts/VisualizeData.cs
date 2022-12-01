@@ -14,5 +14,16 @@ public class VisualizeData : MonoBehaviour
             GameSettingsSingleton.Instance.graphJsonString,
             GameSettingsSingleton.Instance.meshJsonString
         );
+
+        if (Input.GetKeyDown(KeyCode.Return))
+        {
+            _SpawnMesh();
+        }
+    }
+
+    private void _SpawnMesh()
+    {
+        GameObject go = Resources.Load("mesh") as GameObject;
+        Instantiate(go, Vector3.zero, Quaternion.identity);
     }
 }
