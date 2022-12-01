@@ -13,14 +13,17 @@ public class GameSettingsSingleton : MonoBehaviourPunCallbacks
     public string graphJsonString;
     [HideInInspector]
     public string meshJsonString;
+    [HideInInspector]
+    public string[] meshJonStringArray { get; set; }
+
 
     private void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
-            graphJsonString = "...";
-            meshJsonString = "...";
+            graphJsonString = "";
+            meshJsonString = "";
 
         }
         else
@@ -28,8 +31,8 @@ public class GameSettingsSingleton : MonoBehaviourPunCallbacks
             if (Instance == this) return;
             Destroy(Instance.gameObject);
             Instance = this;
-            graphJsonString = "...";
-            meshJsonString = "...";
+            graphJsonString = "";
+            meshJsonString = "";
         }
     }
 }

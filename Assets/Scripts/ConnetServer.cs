@@ -25,6 +25,11 @@ public class ConnetServer : MonoBehaviourPunCallbacks
         PhotonNetwork.Instantiate("SendReceive", Vector3.zero, Quaternion.identity);
     }
 
+    public override void OnDisconnected(DisconnectCause cause)
+    {
+        Debug.Log($"server disconnected due to {cause}");
+    }
+
     private IEnumerator CreateJoinRoom(float delay)
     {
         while (true)
