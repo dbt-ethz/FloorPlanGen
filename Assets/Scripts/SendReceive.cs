@@ -21,14 +21,15 @@ public class SendReceive : MonoBehaviourPun, IPunObservable
     {
         if (Input.GetKeyDown(KeyCode.Space)) // TODO send through UI buttons
         {
-            if (PhotonNetwork.NickName == "client")
+            if (PhotonNetwork.NickName == "client" && _photonView.IsMine)
             {
                 //TODO update graph.json from tracked objects
                 string path = Application.dataPath + "/Scripts/graph.json";
                 string jsonString = File.ReadAllText(path);
                 _photonView.RPC("PunRPC_sendGraph", RpcTarget.AllBuffered, jsonString);
+                Debug.Log("send out graph");
             }
-            else if (PhotonNetwork.NickName == "server")
+            else if (PhotonNetwork.NickName == "server" && _photonView.IsMine)
             {
                 //TODO generate mesh from rhino
 
@@ -53,7 +54,7 @@ public class SendReceive : MonoBehaviourPun, IPunObservable
 
                 Debug.Log($"string length: {stringLength}");
                 Debug.Log($"string array length: {objStringArray.Length}");
-                _photonView.RPC("PunPRC_sendMeshBuddle", RpcTarget.AllBuffered, objStringArray);
+                _photonView.RPC("PunPRC_sendMeshBuddle", RpcTarget.OthersBuffered, objStringArray);
             }
         }
     }
@@ -94,7 +95,7 @@ public class SendReceive : MonoBehaviourPun, IPunObservable
         }
         Debug.Log($"received string with length of {GameSettingsSingleton.Instance.meshJsonString.Length}");
 
-        if (PhotonNetwork.NickName == "client")
+        if (!_photonView.IsMine)
         {
             string path = Application.dataPath + "/Resources/mesh.obj";
             File.WriteAllText(path, GameSettingsSingleton.Instance.meshJsonString);
