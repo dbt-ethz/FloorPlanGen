@@ -85,17 +85,15 @@ public class SendReceive : MonoBehaviourPun, IPunObservable
 
     private IEnumerator _sendMeshBuddle(string[] objStringArray, float delay)
     {
-        //GameSettingsSingleton.Instance.meshJonStringArray = new string[objStringArray.Length];
         for(int i=0; i < objStringArray.Length; i++)
         {
-            //GameSettingsSingleton.Instance.meshJonStringArray[i] = objStringArray[i];
             GameSettingsSingleton.Instance.meshJsonString += objStringArray[i];
             yield return new WaitForSeconds(delay);
             Debug.Log($"get {i} package");
         }
         Debug.Log($"received string with length of {GameSettingsSingleton.Instance.meshJsonString.Length}");
 
-        if (!_photonView.IsMine)
+        if (PhotonNetwork.NickName == "client" && !_photonView.IsMine)
         {
             string path = Application.dataPath + "/Resources/mesh.obj";
             File.WriteAllText(path, GameSettingsSingleton.Instance.meshJsonString);

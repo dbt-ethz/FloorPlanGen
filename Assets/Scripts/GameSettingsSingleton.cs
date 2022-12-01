@@ -13,9 +13,6 @@ public class GameSettingsSingleton : MonoBehaviourPunCallbacks
     public string graphJsonString;
     [HideInInspector]
     public string meshJsonString;
-    [HideInInspector]
-    public string[] meshJonStringArray { get; set; }
-
 
     private void Awake()
     {
