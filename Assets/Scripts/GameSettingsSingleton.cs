@@ -19,8 +19,8 @@ public class GameSettingsSingleton : MonoBehaviourPunCallbacks
         if (Instance == null)
         {
             Instance = this;
-            graphJsonString = "...";
-            meshJsonString = "...";
+            graphJsonString = "";
+            meshJsonString = "";
 
         }
         else
@@ -28,8 +28,8 @@ public class GameSettingsSingleton : MonoBehaviourPunCallbacks
             if (Instance == this) return;
             Destroy(Instance.gameObject);
             Instance = this;
-            graphJsonString = "...";
-            meshJsonString = "...";
+            graphJsonString = "";
+            meshJsonString = "";
         }
     }
 }
