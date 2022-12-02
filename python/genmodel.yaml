@@ -1,4 +1,4 @@
-name: ppo
+name: genmodel
 channels:
   - ostrokach-forge
   - conda-forge
