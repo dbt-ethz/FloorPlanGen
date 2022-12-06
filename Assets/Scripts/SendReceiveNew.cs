@@ -17,16 +17,16 @@ public class SendReceiveNew : MonoBehaviourPun
     {
         if (PhotonNetwork.NickName == "client")
         {
-            //send graph
-            if (Input.GetKeyDown(KeyCode.G)) // TODO send through UI buttons
-            {
-                _SendGraph2Server();
-            }
             //send boundary request
-            else if (Input.GetKeyDown(KeyCode.B)) // TODO send through UI buttons
+            if (Input.GetKeyDown(KeyCode.B)) // TODO send through UI buttons
             {
                 int boundaryID = 0; // get this from UI
                 _SendBoundrayRequest2Server(boundaryID);
+            }
+            //send graph
+            else if (Input.GetKeyDown(KeyCode.G)) // TODO send through UI buttons
+            {
+                _SendGraph2Server();
             }
 
         else if (PhotonNetwork.NickName == "server")
@@ -58,10 +58,14 @@ public class SendReceiveNew : MonoBehaviourPun
     }
     private void _SendBoundary2Client(int boundaryID)
     {
-        string path = Application.dataPath + $"/Resouce/boundary{boundaryID}.json"; //make it boundaryID
-        string jsonString = File.ReadAllText(path);
-        _photonView.RPC("PunRPC_sendBoundary", RpcTarget.AllBuffered, jsonString); //max length 32k
-        Debug.Log("send out boundary");
+        string path = Application.dataPath + $"/Resouces/boundary{boundaryID}.json"; //make it boundaryID
+        if (!string.IsNullOrEmpty(path))
+        {
+            string jsonString = File.ReadAllText(path);
+            _photonView.RPC("PunRPC_sendBoundary", RpcTarget.AllBuffered, jsonString); //max length 32k
+            Debug.Log("send out boundary");
+        }
+        
     }
     
     [PunRPC]

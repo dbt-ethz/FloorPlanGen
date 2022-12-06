@@ -35,7 +35,7 @@ public class ConnetServer : MonoBehaviourPunCallbacks
         while (true)
         {
             yield return new WaitForSeconds(delay);
-            if (PhotonNetwork.IsConnected)
+            if (PhotonNetwork.IsConnected && PhotonNetwork.InLobby)
             {
                 RoomOptions options = new RoomOptions();
                 options.MaxPlayers = 5;
