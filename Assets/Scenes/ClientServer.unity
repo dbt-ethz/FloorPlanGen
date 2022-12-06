@@ -219,7 +219,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8fa943ac78cb26d4f88b339fee2f901f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  userName: client
+  userName: server
   roomName: default
   graphJsonString: 
   meshJsonString: 

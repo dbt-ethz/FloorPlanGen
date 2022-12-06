@@ -9,11 +9,11 @@ public class CameraControl : MonoBehaviour
     public void SetOwnership2Client()
     {
         PhotonView pv = GetComponent<PhotonView>();
-        Debug.Log(PhotonNetwork.NickName);
         if (pv.IsMine) return;
 
-        if (PhotonNetwork.NickName == "server")
+        if (PhotonNetwork.NickName == "client")
         {
+            Debug.Log("request ownership");
             pv.RequestOwnership();
         }
     }
