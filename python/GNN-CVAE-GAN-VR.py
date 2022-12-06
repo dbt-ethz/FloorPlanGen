@@ -1,9 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[41]:
-
-
 import os
 import tensorflow as tf
 tf.compat.v1.enable_eager_execution()
@@ -14,11 +8,8 @@ from tensorflow.keras import layers,Sequential
 from tensorflow.keras.models import Model,load_model
 from tensorflow.keras.layers import Input, Flatten, Dense, Lambda, Reshape, Concatenate, Embedding,Activation, LeakyReLU, ELU
 import json
-
+import pandas as pd
 current = os.getcwd()
-
-# In[18]:
-
 
 sequence_length = 8
 batch_size = 64
@@ -128,20 +119,12 @@ decoder_outputs = decoder([decoder_inputs, encoder_outputs])
 transformer = Model(
     [decoder_inputs,type_input,door_input,bound_input], [decoder_outputs], name="transformer")
 
-
-# In[32]:
-
-
-transformer.load_weights(os.path.join(current,'pretrained_models/location_predictor_trained/transformer1000_10ep'))
-type_predictor_trained = load_model(os.path.join(current,'pretrained_models/type_predictor_trained/type_predictor_trained'), compile=False)
+transformer.load_weights(os.path.join(current,'pretrained_models\\location_predictor_trained\\transformer1000_10ep'))
+type_predictor_trained = load_model(os.path.join(current,'pretrained_models\\type_predictor_trained'), compile=False)
 location_predictor_trained = transformer
-size_predictor_trained = load_model(os.path.join(current,'pretrained_models/type_predictor_trained/size_predictor_trained'), compile=False)
-edge_predictor_trained = load_model(os.path.join(current,'pretrained_models/type_predictor_trained/edge_predictor_trained'), compile=False)
-ratio_predictor_trained = load_model(os.path.join(current,'pretrained_models/type_predictor_trained/ratio_predictor_trained'), compile=False)
-
-
-# In[50]:
-
+size_predictor_trained = load_model(os.path.join(current,'pretrained_models\\size_predictor_trained'), compile=False)
+edge_predictor_trained = load_model(os.path.join(current,'pretrained_models\\edge_predictor_trained'), compile=False)
+ratio_predictor_trained = load_model(os.path.join(current,'pretrained_models\\ratio_predictor_trained'), compile=False)
 
 bound1 = np.array([[[115, 115, 115, 115, 115, 115, 115, 115],
         [115,  30, 172, 172, 172, 172,  77, 115],
@@ -183,27 +166,27 @@ door3 = np.array([[0.34313725, 0.78235294]])
 boundlist = [bound1,bound2,bound3]
 doorlist = [door1,door2,door3]
 
-
-# In[26]:
-
-
 max_decoded_sentence_length = 8
-def decode_sequence(typein,doorin,boundin):
+def decode_sequence(typein,doorin,boundin,ind_kitchen,ind_bed1,ind_bed2,ind_bed3):
     decoded_sentence = np.expand_dims(np.array([[999,999],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]]),axis=0)
     for i in range(max_decoded_sentence_length):
         tokenized_target_sentence = decoded_sentence[:,:-1]
         predictions = location_predictor_trained([tokenized_target_sentence,typein,doorin,boundin])
         sampled_token_index = np.array([np.argmax(predictions[0, i,0, :]),np.argmax(predictions[0, i,1, :])])
-        decoded_sentence[:,i+1] = sampled_token_index
+        if ind_kitchen !=0 and i == ind_kitchen:
+            decoded_sentence[:, i + 1] = np.array([int(datagraph['nodes'][0]['position']['x']*1000),int(datagraph['nodes'][0]['position']['y']*1000)])
+        elif ind_bed1 !=0 and i == ind_bed1:
+            decoded_sentence[:, i + 1] = np.array([int(datagraph['nodes'][2]['position']['x']*1000), int(datagraph['nodes'][2]['position']['y']*1000)])
+        elif ind_bed2 !=0 and i == ind_bed2:
+            decoded_sentence[:, i + 1] = np.array([int(datagraph['nodes'][3]['position']['x']*1000), int(datagraph['nodes'][3]['position']['y']*1000)])
+        elif ind_bed3 !=0 and i == ind_bed3:
+            decoded_sentence[:, i + 1] = np.array([int(datagraph['nodes'][4]['position']['x']*1000), int(datagraph['nodes'][4]['position']['y']*1000)])
+        else:
+            decoded_sentence[:,i+1] = sampled_token_index
         if sampled_token_index[0] == 0:
             break
     return decoded_sentence
 
-
-# In[29]:
-
-
-# latent = np.linspace(0*np.ones((32)), 1*np.ones((32)), num=5)
 with open(os.path.join(current,'graph.json'), 'r') as f:
     datagraph = json.load(f)
 with open(os.path.join(current,'boundary.json'), 'r') as g:
@@ -216,7 +199,7 @@ locations = []
 sizes = []
 edges = []
 ratios = []
-latents = np.expand_dims(i, axis=0)
+latents = np.expand_dims(latent, axis=0)
 get_type = type_predictor_trained.predict([latents,bound])
 types_ind = np.argmax(get_type, axis=2)
 types_ind[types_ind==6] = 8
@@ -226,8 +209,26 @@ types_ind = np.sort(types_ind)
 types_ind[types_ind==8] = 0
 node_type_seq = [5,0,4,4,4]
 types.append(types_ind)
+ind_kitchen = 0
+ind_bed1 = 0
+ind_bed2 = 0
+ind_bed3 = 0
+for i in range(5):
+    node = datagraph['nodes'][i]['position']
+    node_x = node['x']
+    node_y = node['y']
+    if 0 < node['x'] < 1 and 0 < node['y'] < 1:
+        if i == 0:
+            ind_kitchen = np.argmax(types_ind == node_type_seq[i])
+        elif i == 2:
+            ind_bed1 = np.argmax(types_ind == node_type_seq[i])
+        elif i == 3:
+            ind_bed2 = np.argmax(types_ind == node_type_seq[i])
+        elif i == 4:
+            ind_bed3 = np.argmax(types_ind == node_type_seq[i])
+
 pad_type = np.array(np.insert(types_ind,6,0,axis = 1),dtype=np.int32)
-get_location = np.expand_dims(decode_sequence(pad_type,door,bound)[0,1:-1,:]/1000, axis=0)#np.expand_dims(loca, axis=0)#NodeList[ind][:,:2]
+get_location = np.expand_dims(decode_sequence(pad_type,door,bound,ind_kitchen,ind_bed1,ind_bed2,ind_bed3)[0,1:-1,:]/1000, axis=0)#np.expand_dims(loca, axis=0)#NodeList[ind][:,:2]
 locations.append(get_location)
 get_size = size_predictor_trained.predict([get_location,get_type,bound])
 sizes.append(get_size)
@@ -236,6 +237,19 @@ edges.append(get_edge)
 get_ratio = ratio_predictor_trained.predict([get_edge,get_size,get_location,get_type,bound])
 ratios.append(get_ratio)
 edges_ind = np.argmax(edges, axis=4)
+
+writer = pd.ExcelWriter(os.path.join(current,'test2.xlsx'))
+pdtype = pd.DataFrame(np.array(types).reshape(1,7))
+pdlocation = pd.DataFrame(np.array(locations).reshape(1,14))
+pdsizes = pd.DataFrame(np.array(sizes).reshape(1,7))
+pdedges = pd.DataFrame(np.array(edges_ind).reshape(1,36))
+pdratios = pd.DataFrame(np.array(ratios).reshape(1,7))
+pdtype.to_excel(writer,'page_1',float_format='%.5f',header=None,index=None)
+pdlocation.to_excel(writer,'page_2',float_format='%.5f',header=None,index=None)
+pdsizes.to_excel(writer,'page_3',float_format='%.5f',header=None,index=None)
+pdedges.to_excel(writer,'page_4',float_format='%.5f',header=None,index=None)
+pdratios.to_excel(writer,'page_5',float_format='%.5f',header=None,index=None)
+writer.save()
 
 
     
