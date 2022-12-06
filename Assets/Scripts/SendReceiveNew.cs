@@ -58,7 +58,7 @@ public class SendReceiveNew : MonoBehaviourPun
     }
     private void _SendBoundary2Client(int boundaryID)
     {
-        string path = Application.dataPath + $"/Resouces/boundary{boundaryID}.json"; //make it boundaryID
+        string path = Application.dataPath + $"/Resources/boundary{boundaryID}.json"; //make it boundaryID
         if (!string.IsNullOrEmpty(path))
         {
             string jsonString = File.ReadAllText(path);
