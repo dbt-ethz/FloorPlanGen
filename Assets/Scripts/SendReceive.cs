@@ -19,51 +19,83 @@ public class SendReceive : MonoBehaviourPun, IPunObservable
     }
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space)) // TODO send through UI buttons
+        if (PhotonNetwork.NickName == "client" && _photonView.IsMine)
         {
-            if (PhotonNetwork.NickName == "client" && _photonView.IsMine)
+            //send graph
+            if (Input.GetKeyDown(KeyCode.Space)) // TODO send through UI buttons
             {
-                //TODO update graph.json from tracked objects
-                string path = Application.dataPath + "/Scripts/graph.json";
-                string jsonString = File.ReadAllText(path);
-                _photonView.RPC("PunRPC_sendGraph", RpcTarget.AllBuffered, jsonString);
-                Debug.Log("send out graph");
+
+                SendGraph2Server();
             }
-            else if (PhotonNetwork.NickName == "server" && _photonView.IsMine)
+            //send boundary request
+            else if (Input.GetKeyDown(KeyCode.X)) // TODO send through UI buttons
             {
-                //TODO generate mesh from rhino
+                //pass
+            }
 
-                // to send single file
-                //string path = Application.dataPath + "/Resources/house_01.obj";
-                //string objString = File.ReadAllText(path);
-                //_photonView.RPC("PunRPC_sendMesh", RpcTarget.AllBuffered, objString);
+        else if (PhotonNetwork.NickName == "server" && _photonView.IsMine)
+            {
+                //send boundary
 
-                // split string into chunks
-                string path = Application.dataPath + "/Resources/mesh.obj";
-                string objString = File.ReadAllText(path);
+                //send mesh
 
-                int chunkSize = 32000;
-                int stringLength = objString.Length;
-                List<string> objStringList = new List<string>();
-                for (int i = 0; i < stringLength; i += chunkSize)
-                {
-                    if (i + chunkSize > stringLength) chunkSize = stringLength - i;
-                    objStringList.Add(objString.Substring(i, chunkSize));
-                }
-                string[] objStringArray = objStringList.ToArray();
+                //load up new mesh
+                SendMeshData2Client();
 
-                Debug.Log($"string length: {stringLength}");
-                Debug.Log($"string array length: {objStringArray.Length}");
-                _photonView.RPC("PunPRC_sendMeshBuddle", RpcTarget.OthersBuffered, objStringArray);
+
             }
         }
+    }
+
+    private void SendGraph2Server()
+    {
+        //TODO update jsonString from tracked objects
+        string path = Application.dataPath + "/Scripts/graph.json";
+        string jsonString = File.ReadAllText(path);
+        //
+        _photonView.RPC("PunRPC_sendGraph", RpcTarget.AllBuffered, jsonString); //max length 32k
+        Debug.Log("send out graph");
+    }
+
+    [PunRPC]
+    private void PunSendBoundary()
+    {
+
+    }
+
+    private void SendMeshData2Client()
+    {
+        //TODO generate mesh from rhino
+
+        // split string into chunks
+        string path = Application.dataPath + "/Resources/mesh.obj";
+        string objString = File.ReadAllText(path);
+
+        int chunkSize = 32000;
+        int stringLength = objString.Length;
+        List<string> objStringList = new List<string>();
+        for (int i = 0; i < stringLength; i += chunkSize)
+        {
+            if (i + chunkSize > stringLength) chunkSize = stringLength - i;
+            objStringList.Add(objString.Substring(i, chunkSize));
+        }
+        string[] objStringArray = objStringList.ToArray();
+
+        Debug.Log($"string length: {stringLength}");
+        Debug.Log($"string array length: {objStringArray.Length}");
+        _photonView.RPC("PunPRC_sendMeshBuddle", RpcTarget.OthersBuffered, objStringArray);
     }
 
     [PunRPC]
     private void PunRPC_sendGraph(string jsonString)
     {
         GameSettingsSingleton.Instance.graphJsonString = jsonString;
-   
+        if (PhotonNetwork.NickName == "server" && _photonView.IsMine)
+        {
+            //write json
+            string path = Application.dataPath + "/Resources/graph.json";
+            File.WriteAllText(path, GameSettingsSingleton.Instance.graphJsonString);
+        }
     }
 
     [PunRPC]
@@ -93,12 +125,21 @@ public class SendReceive : MonoBehaviourPun, IPunObservable
         }
         Debug.Log($"received string with length of {GameSettingsSingleton.Instance.meshJsonString.Length}");
 
+        // received all
         if (PhotonNetwork.NickName == "client" && !_photonView.IsMine)
         {
             string path = Application.dataPath + "/Resources/mesh.obj";
             File.WriteAllText(path, GameSettingsSingleton.Instance.meshJsonString);
         }
+
+        // call spawn mesh
         
+    }
+    
+    [PunRPC]
+    private void SpawnMeshOnReceive()
+    {
+
     }
 
     [PunRPC]
