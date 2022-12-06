@@ -15,31 +15,36 @@ public class SendReceiveNew : MonoBehaviourPun
     }
     private void Update()
     {
-        if (PhotonNetwork.NickName == "client")
+        //send mesh
+        if (Input.GetKeyDown(KeyCode.M)) // TODO send when you detect change in the OBJ file saved by grasshopper
         {
-            //send boundary request
-            if (Input.GetKeyDown(KeyCode.B)) // TODO send through UI buttons
+            if (PhotonNetwork.NickName == "server")
+            {
+                _SpawnMesh();
+                // you can use the FileSystemWatcher to detect file changes
+                _SendMeshData2Client();
+            }
+        }
+
+        //send boundary request
+        else if (Input.GetKeyDown(KeyCode.B)) // TODO send through UI buttons
+        {
+            if (PhotonNetwork.NickName == "client")
             {
                 int boundaryID = 0; // get this from UI
                 _SendBoundrayRequest2Server(boundaryID);
             }
-            //send graph
-            else if (Input.GetKeyDown(KeyCode.G)) // TODO send through UI buttons
+        }
+
+        //send graph
+        else if (Input.GetKeyDown(KeyCode.G)) // TODO send through UI buttons
+        {
+            if (PhotonNetwork.NickName == "client")
             {
                 _SendGraph2Server();
             }
-
-        else if (PhotonNetwork.NickName == "server")
-            {
-                //send mesh
-                if (Input.GetKeyDown(KeyCode.M)) // TODO send when you detect change in the OBJ file saved by grasshopper
-                {
-                    _SpawnMesh();
-                   // you can use the FileSystemWatcher to detect file changes
-                    _SendMeshData2Client();
-                }
-            }
         }
+
     }
     private void _SendBoundrayRequest2Server(int boundaryID)
     {
@@ -152,8 +157,14 @@ public class SendReceiveNew : MonoBehaviourPun
 
     private void _SpawnMesh()
     {
+        if (GameObject.Find("/mesh"))
+        {
+            Destroy(GameObject.Find("/mesh"));
+        }
+
         GameObject go = Resources.Load("mesh") as GameObject;
-        Instantiate(go, Vector3.zero, Quaternion.identity);
+        GameObject meshGo = Instantiate(go, Vector3.zero, Quaternion.identity);
+        meshGo.name = "mesh";
     }
 
     [PunRPC]
