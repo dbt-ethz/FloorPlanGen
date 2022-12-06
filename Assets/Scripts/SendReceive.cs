@@ -30,21 +30,62 @@ public class SendReceive : MonoBehaviourPun, IPunObservable
             //send boundary request
             else if (Input.GetKeyDown(KeyCode.X)) // TODO send through UI buttons
             {
-                //pass
+                int boundaryID = 0; // get this from UI
+                SendBoundrayRequest2Server(boundaryID);
             }
 
         else if (PhotonNetwork.NickName == "server" && _photonView.IsMine)
             {
                 //send boundary
+                if (Input.GetKeyDown(KeyCode.Space)) // TODO send through UI buttons
+                {
+
+                    //SendBoundary2Client();
+                }
+                //load up new mesh
 
                 //send mesh
-
-                //load up new mesh
-                SendMeshData2Client();
-
-
+                if (Input.GetKeyDown(KeyCode.M)) // TODO send when you detect change in the OBJ file saved by grasshopper
+                
+                {
+                   // you can use the FileSystemWatcher to detect file changes
+                    SendMeshData2Client();
+                }
+               
             }
         }
+    }
+
+    private void SendBoundrayRequest2Server(int boundaryID)
+    {
+        _photonView.RPC("PunRPC_sendBoundaryRequest", RpcTarget.AllBuffered, boundaryID);
+    }
+
+    [PunRPC]
+    private void PunRPC_sendBoundaryRequest(int boundaryID)
+    {
+        //GameSettingsSingleton.Instance.boundaryIDrequested = boundaryID;
+        //if server send me back the boundary to client
+        if (PhotonNetwork.NickName == "server" && _photonView.IsMine)
+        {
+            SendBoundary2Client(boundaryID);
+        }
+    }
+
+    private void SendBoundary2Client(int boundaryID)
+    {
+        //TODO update jsonString from tracked objects
+        string path = Application.dataPath + $"/Resouce/boundary{boundaryID}.json"; ///make it boundaryID
+        string jsonString = File.ReadAllText(path);
+        //
+        _photonView.RPC("PunRPC_sendBoundary", RpcTarget.AllBuffered, jsonString); //max length 32k
+        Debug.Log("send out boundary");
+    }
+
+    [PunRPC]
+    private void PunRPC_sendBoundary(string jsonString)
+    {
+        GameSettingsSingleton.Instance.boundaryJsonString = jsonString;
     }
 
     private void SendGraph2Server()
@@ -55,12 +96,6 @@ public class SendReceive : MonoBehaviourPun, IPunObservable
         //
         _photonView.RPC("PunRPC_sendGraph", RpcTarget.AllBuffered, jsonString); //max length 32k
         Debug.Log("send out graph");
-    }
-
-    [PunRPC]
-    private void PunSendBoundary()
-    {
-
     }
 
     private void SendMeshData2Client()
@@ -90,7 +125,7 @@ public class SendReceive : MonoBehaviourPun, IPunObservable
     private void PunRPC_sendGraph(string jsonString)
     {
         GameSettingsSingleton.Instance.graphJsonString = jsonString;
-        if (PhotonNetwork.NickName == "server" && _photonView.IsMine)
+        if (PhotonNetwork.NickName == "server" && !_photonView.IsMine)
         {
             //write json
             string path = Application.dataPath + "/Resources/graph.json";

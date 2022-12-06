@@ -22,7 +22,7 @@ public class ConnetServer : MonoBehaviourPunCallbacks
     }
     public override void OnJoinedRoom()
     {
-        PhotonNetwork.Instantiate("SendReceive", Vector3.zero, Quaternion.identity);
+        //PhotonNetwork.Instantiate("SendReceive", Vector3.zero, Quaternion.identity);
     }
 
     public override void OnDisconnected(DisconnectCause cause)

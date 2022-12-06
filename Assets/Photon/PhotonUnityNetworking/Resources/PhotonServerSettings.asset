@@ -43,6 +43,10 @@ MonoBehaviour:
   - PunRPC_sendGraph
   - PunRPC_sendMesh
   - PunPRC_sendMeshBuddle
+  - PunSendBoundary
+  - SpawnMeshOnReceive
+  - PunRPC_sendBoundary
+  - PunRPC_sendBoundaryRequest
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1
