@@ -21,21 +21,41 @@ public class SendReceive : MonoBehaviourPun, IPunObservable
     {
         if (Input.GetKeyDown(KeyCode.Space)) // TODO send through UI buttons
         {
-            if (PhotonNetwork.NickName == "client")
+            if (PhotonNetwork.NickName == "client" && _photonView.IsMine)
             {
                 //TODO update graph.json from tracked objects
                 string path = Application.dataPath + "/Scripts/graph.json";
                 string jsonString = File.ReadAllText(path);
                 _photonView.RPC("PunRPC_sendGraph", RpcTarget.AllBuffered, jsonString);
+                Debug.Log("send out graph");
             }
-            else if (PhotonNetwork.NickName == "server")
+            else if (PhotonNetwork.NickName == "server" && _photonView.IsMine)
             {
                 //TODO generate mesh from rhino
+
+                // to send single file
+                //string path = Application.dataPath + "/Resources/house_01.obj";
+                //string objString = File.ReadAllText(path);
+                //_photonView.RPC("PunRPC_sendMesh", RpcTarget.AllBuffered, objString);
+
+                // split string into chunks
                 string path = Application.dataPath + "/Resources/mesh.obj";
                 string objString = File.ReadAllText(path);
-                _photonView.RPC("PunRPC_sendMesh", RpcTarget.AllBuffered, objString);
-            }
 
+                int chunkSize = 32000;
+                int stringLength = objString.Length;
+                List<string> objStringList = new List<string>();
+                for (int i = 0; i < stringLength; i += chunkSize)
+                {
+                    if (i + chunkSize > stringLength) chunkSize = stringLength - i;
+                    objStringList.Add(objString.Substring(i, chunkSize));
+                }
+                string[] objStringArray = objStringList.ToArray();
+
+                Debug.Log($"string length: {stringLength}");
+                Debug.Log($"string array length: {objStringArray.Length}");
+                _photonView.RPC("PunPRC_sendMeshBuddle", RpcTarget.OthersBuffered, objStringArray);
+            }
         }
     }
 
@@ -55,6 +75,30 @@ public class SendReceive : MonoBehaviourPun, IPunObservable
             string path = Application.dataPath + "/Resources/mesh.obj";
             File.WriteAllText(path, objString);
         }
+    }
+
+    [PunRPC]
+    private void PunPRC_sendMeshBuddle(string[] objStringArray)
+    {
+        StartCoroutine(_sendMeshBuddle(objStringArray, 0.5f));
+    }
+
+    private IEnumerator _sendMeshBuddle(string[] objStringArray, float delay)
+    {
+        for(int i=0; i < objStringArray.Length; i++)
+        {
+            GameSettingsSingleton.Instance.meshJsonString += objStringArray[i];
+            yield return new WaitForSeconds(delay);
+            Debug.Log($"get {i} package");
+        }
+        Debug.Log($"received string with length of {GameSettingsSingleton.Instance.meshJsonString.Length}");
+
+        if (PhotonNetwork.NickName == "client" && !_photonView.IsMine)
+        {
+            string path = Application.dataPath + "/Resources/mesh.obj";
+            File.WriteAllText(path, GameSettingsSingleton.Instance.meshJsonString);
+        }
+        
     }
 
     [PunRPC]

@@ -26,4 +26,12 @@ public class VisualizeData : MonoBehaviour
         GameObject go = Resources.Load("mesh") as GameObject;
         Instantiate(go, Vector3.zero, Quaternion.identity);
     }
+
+    private void _CreateMeshFromString(string objString)
+    {
+        Mesh mesh = new Mesh();
+        GameObject go = new GameObject("Mesh", typeof(MeshFilter), typeof(MeshRenderer));
+        MeshFilter meshFilter = go.GetComponent<MeshFilter>();
+        //meshFilter.mesh = new OBJLoader()
+    }
 }

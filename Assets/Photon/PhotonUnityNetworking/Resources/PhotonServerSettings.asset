@@ -42,6 +42,7 @@ MonoBehaviour:
   - PunRPC_SetNickName
   - PunRPC_sendGraph
   - PunRPC_sendMesh
+  - PunPRC_sendMeshBuddle
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1
