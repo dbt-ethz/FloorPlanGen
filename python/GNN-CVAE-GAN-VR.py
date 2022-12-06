@@ -132,12 +132,12 @@ transformer = Model(
 # In[32]:
 
 
-transformer.load_weights(os.path.join(current,'pretrained_models/location_predictor_trained/transformer1000_10ep'))
-type_predictor_trained = load_model(os.path.join(current,'pretrained_models/type_predictor_trained/type_predictor_trained'), compile=False)
+transformer.load_weights(os.path.join(current,'pretrained_models','location_predictor_trained','transformer1000_10ep'))
+type_predictor_trained = load_model(os.path.join(current,'pretrained_models','type_predictor_trained','type_predictor_trained'), compile=False)
 location_predictor_trained = transformer
-size_predictor_trained = load_model(os.path.join(current,'pretrained_models/type_predictor_trained/size_predictor_trained'), compile=False)
-edge_predictor_trained = load_model(os.path.join(current,'pretrained_models/type_predictor_trained/edge_predictor_trained'), compile=False)
-ratio_predictor_trained = load_model(os.path.join(current,'pretrained_models/type_predictor_trained/ratio_predictor_trained'), compile=False)
+size_predictor_trained = load_model(os.path.join(current,'pretrained_models','type_predictor_trained','size_predictor_trained'), compile=False)
+edge_predictor_trained = load_model(os.path.join(current,'pretrained_models','type_predictor_trained','edge_predictor_trained'), compile=False)
+ratio_predictor_trained = load_model(os.path.join(current,'pretrained_models','type_predictor_trained','ratio_predictor_trained'), compile=False)
 
 
 # In[50]:
