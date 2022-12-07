@@ -15,8 +15,6 @@ public class GameSettingsSingleton : MonoBehaviourPunCallbacks
     public string meshJsonString;
     [HideInInspector]
     public string boundaryJsonString;
-    //[HideInInspector]
-    //public int boundaryIDrequested;
 
     private void Awake()
     {

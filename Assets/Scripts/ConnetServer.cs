@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class ConnetServer : MonoBehaviourPunCallbacks
 {
-
+    
     void Start()
     {
         PhotonNetwork.NickName = GameSettingsSingleton.Instance.userName;
@@ -20,9 +20,16 @@ public class ConnetServer : MonoBehaviourPunCallbacks
         PhotonNetwork.JoinLobby();
         StartCoroutine(CreateJoinRoom(0.1f));
     }
+
     public override void OnJoinedRoom()
     {
-        //PhotonNetwork.Instantiate("SendReceive", Vector3.zero, Quaternion.identity);
+        _SetCameraOwnership();
+    }
+
+    private void _SetCameraOwnership()
+    {
+        CameraControl cameraControl = Camera.main.GetComponent<CameraControl>();
+        cameraControl.SetOwnership2Client();
     }
 
     public override void OnDisconnected(DisconnectCause cause)

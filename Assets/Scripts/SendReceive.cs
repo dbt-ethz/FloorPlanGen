@@ -2,8 +2,10 @@ using Photon.Pun;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using TMPro;
 using UnityEngine;
+using Dummiesman;
 
 public class SendReceive : MonoBehaviourPun
 {
@@ -15,19 +17,8 @@ public class SendReceive : MonoBehaviourPun
     }
     private void Update()
     {
-        //send mesh
-        if (Input.GetKeyDown(KeyCode.M)) // TODO send when you detect change in the OBJ file saved by grasshopper
-        {
-            if (PhotonNetwork.NickName == "server")
-            {
-                _SpawnMesh();
-                // you can use the FileSystemWatcher to detect file changes
-                _SendMeshData2Client();
-            }
-        }
-
         //send boundary request
-        else if (Input.GetKeyDown(KeyCode.B)) // TODO send through UI buttons
+        if (Input.GetKeyDown(KeyCode.B)) // TODO send through UI buttons
         {
             if (PhotonNetwork.NickName == "client")
             {
@@ -45,6 +36,16 @@ public class SendReceive : MonoBehaviourPun
             }
         }
 
+        //send mesh
+        else if (Input.GetKeyDown(KeyCode.M)) // TODO send when you detect change in the OBJ file saved by grasshopper
+        {
+            if (PhotonNetwork.NickName == "server")
+            {
+                _SpawnMesh();
+                // you can use the FileSystemWatcher to detect file changes
+                _SendMeshData2Client();
+            }
+        }
     }
     private void _SendBoundrayRequest2Server(int boundaryID)
     {
@@ -146,20 +147,22 @@ public class SendReceive : MonoBehaviourPun
         Debug.Log($"received string with length of {GameSettingsSingleton.Instance.meshJsonString.Length}");
 
         // received all
-        if (PhotonNetwork.NickName == "client")
-        {
-            //string path = Application.dataPath + "/Resources/mesh.obj";
-            //File.WriteAllText(path, GameSettingsSingleton.Instance.meshJsonString);
-            _SpawnAsync();
-        }
+        _SpawnMeshFromString(GameSettingsSingleton.Instance.meshJsonString);
     }
-    private async void _SpawnAsync()
+
+    private void _SpawnMeshFromString(string objString)
     {
-        string path = Application.dataPath + "/Resources/mesh.obj";
-        await File.WriteAllTextAsync(path, GameSettingsSingleton.Instance.meshJsonString);
-        _SpawnMesh();
-        Debug.Log("spawned mesh");
+        if (GameObject.Find("/mesh"))
+        {
+            Destroy(GameObject.Find("/mesh"));
+        }
+
+        var textStream = new MemoryStream(Encoding.UTF8.GetBytes(objString));
+        var loadedObj = new OBJLoader().Load(textStream);
+        loadedObj.name = "mesh";
+        loadedObj.transform.localScale = new Vector3(0.05f, 0.05f, 0.05f);
     }
+
     private void _SpawnMesh()
     {
         if (GameObject.Find("/mesh"))

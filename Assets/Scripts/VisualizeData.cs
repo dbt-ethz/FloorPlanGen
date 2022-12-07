@@ -14,11 +14,6 @@ public class VisualizeData : MonoBehaviour
             GameSettingsSingleton.Instance.graphJsonString,
             GameSettingsSingleton.Instance.meshJsonString
         );
-
-        if (Input.GetKeyDown(KeyCode.Return))
-        {
-            _SpawnMesh();
-        }
     }
 
     private void _SpawnMesh()
@@ -27,11 +22,4 @@ public class VisualizeData : MonoBehaviour
         Instantiate(go, Vector3.zero, Quaternion.identity);
     }
 
-    private void _CreateMeshFromString(string objString)
-    {
-        Mesh mesh = new Mesh();
-        GameObject go = new GameObject("Mesh", typeof(MeshFilter), typeof(MeshRenderer));
-        MeshFilter meshFilter = go.GetComponent<MeshFilter>();
-        //meshFilter.mesh = new OBJLoader()
-    }
 }
