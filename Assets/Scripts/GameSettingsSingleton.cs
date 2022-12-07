@@ -13,6 +13,10 @@ public class GameSettingsSingleton : MonoBehaviourPunCallbacks
     public string graphJsonString;
     [HideInInspector]
     public string meshJsonString;
+    [HideInInspector]
+    public string boundaryJsonString;
+    //[HideInInspector]
+    //public int boundaryIDrequested;
 
     private void Awake()
     {
@@ -21,7 +25,7 @@ public class GameSettingsSingleton : MonoBehaviourPunCallbacks
             Instance = this;
             graphJsonString = "";
             meshJsonString = "";
-
+            boundaryJsonString = "";
         }
         else
         {
@@ -30,6 +34,7 @@ public class GameSettingsSingleton : MonoBehaviourPunCallbacks
             Instance = this;
             graphJsonString = "";
             meshJsonString = "";
+            boundaryJsonString = "";
         }
     }
 }

@@ -22,7 +22,7 @@ public class ConnetServer : MonoBehaviourPunCallbacks
     }
     public override void OnJoinedRoom()
     {
-        PhotonNetwork.Instantiate("SendReceive", Vector3.zero, Quaternion.identity);
+        //PhotonNetwork.Instantiate("SendReceive", Vector3.zero, Quaternion.identity);
     }
 
     public override void OnDisconnected(DisconnectCause cause)
@@ -35,7 +35,7 @@ public class ConnetServer : MonoBehaviourPunCallbacks
         while (true)
         {
             yield return new WaitForSeconds(delay);
-            if (PhotonNetwork.IsConnected)
+            if (PhotonNetwork.IsConnected && PhotonNetwork.InLobby)
             {
                 RoomOptions options = new RoomOptions();
                 options.MaxPlayers = 5;
