@@ -10,7 +10,7 @@ from tensorflow.keras.layers import Input, Flatten, Dense, Lambda, Reshape, Conc
 import json
 import pandas as pd
 current = os.getcwd()
-
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 sequence_length = 8
 batch_size = 64
 vocab_size = 1000
