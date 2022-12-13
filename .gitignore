@@ -58,3 +58,4 @@ sysinfo.txt
 # Crashlytics generated file
 crashlytics-build.properties
 
+python/pretrained_models/location_predictor_trained/transformer1000_10ep.data-00000-of-00001
