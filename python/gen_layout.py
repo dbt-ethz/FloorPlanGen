@@ -10,9 +10,8 @@ from tensorflow.keras.layers import Input, Flatten, Dense, Lambda, Reshape, Conc
 import json
 #import pandas as pd
 
+import sys
 import time
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
 
 current = os.getcwd()
 
@@ -158,7 +157,7 @@ def load_models():
     x = Concatenate()([x,door_embedding, bound_embedding])
     encoder_outputs = layers.Dense((256), activation="LeakyReLU")(x)
     # is this encoder below needed?
-    encoder = Model([type_input,door_input,bound_input], encoder_outputs) 
+    #encoder = Model([type_input,door_input,bound_input], encoder_outputs) 
     decoder_inputs = Input(shape=(8,2), dtype="int64", name="decoder_inputs")
     decoder_embedding = layers.Dense((512), activation="LeakyReLU")(decoder_inputs)
     decoder_pooling = layers.GlobalAveragePooling1D(data_format="channels_first")(decoder_embedding)
@@ -261,13 +260,21 @@ def predict_layout(datagraph, data_boundary):
 
 
 # for monitoring the graph.json file
+class Watcher(object):
+    def __init__(self, _filename):
+        
+        self.filename = _filename #'/path/to/file'
+        self._cached_stamp = os.stat(self.filename).st_mtime
 
-class MyHandler(FileSystemEventHandler):
-    def on_modified(self, event):
-        print(f'event type: {event.event_type}  path : {event.src_path}')
-
-
-
+    def changed(self):
+        stamp = os.stat(self.filename).st_mtime
+        if stamp != self._cached_stamp:
+            self._cached_stamp = stamp
+            #print("changed")
+            # File has changed, so do something...
+            return True
+        else:
+            return False
 
 
 
@@ -279,60 +286,41 @@ if __name__ == "__main__":
     print("loaded.")
 
     #monitor changes
-    print("monitoring...")
-    # watchdog: 
-    # https://github.com/gorakhargosh/watchdog/issues/346
     graph_file_path = os.path.join(current,'graph.json')
-    # with open(graph_file_path, 'r') as f:
-    #     datagraph = json.load(f)
+    print(f"monitoring {graph_file_path} ...")
     
-    # with open(os.path.join(current,'boundary.json'), 'r') as g:
-    #     data_boundary = json.load(g)
-    
-    event_handler = MyHandler()
-    observer = Observer()
-    observer.schedule(event_handler, path=graph_file_path, recursive=False)
-    observer.start()
-
-    try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        observer.stop()
-    observer.join()
-
-    #PREDICT
-    print("predicting...")
-    types, locations, sizes, edges_ind, ratios = predict_layout(datagraph, data_boundary)
-    print('done')
-    #SAVE
-    
-    #save as JSON
-    output_data = {
-        "pdtype" : np.array(types).reshape(1,7).tolist()[0],
-        "pdlocation" : np.array(locations).reshape(1,14).tolist()[0],
-        "pdsizes" : np.array(sizes).reshape(1,7).tolist()[0],
-        "pdedges" : np.array(edges_ind).reshape(1,36).tolist()[0],
-        "pdratios" : np.array(ratios).reshape(1,7).tolist()[0],
-        'boundary': data_boundary,
-    }
-
-    with open('layout.json', 'w' ) as f:
-        json.dump(output_data, f)
-    print("layout exported")
-    #export as excel
-    # writer = pd.ExcelWriter(os.path.join(current,'test2.xlsx'))
-    # pdtype = pd.DataFrame(np.array(types).reshape(1,7))
-    # pdlocation = pd.DataFrame(np.array(locations).reshape(1,14))
-    # pdsizes = pd.DataFrame(np.array(sizes).reshape(1,7))
-    # pdedges = pd.DataFrame(np.array(edges_ind).reshape(1,36))
-    # pdratios = pd.DataFrame(np.array(ratios).reshape(1,7))
-    # pdtype.to_excel(writer,'page_1',float_format='%.5f',header=None,index=None)
-    # pdlocation.to_excel(writer,'page_2',float_format='%.5f',header=None,index=None)
-    # pdsizes.to_excel(writer,'page_3',float_format='%.5f',header=None,index=None)
-    # pdedges.to_excel(writer,'page_4',float_format='%.5f',header=None,index=None)
-    # pdratios.to_excel(writer,'page_5',float_format='%.5f',header=None,index=None)
-    # writer.save()
+    pub = Watcher(graph_file_path)
+    while True:
+        try: 
+            time.sleep(1) 
+            if pub.changed():
+                print("changed")
+                with open(graph_file_path, 'r') as f:
+                    datagraph = json.load(f)
                 
-        
+                with open(os.path.join(current,'boundary.json'), 'r') as g:
+                    data_boundary = json.load(g)
+                #PREDICT
+                print("predicting...")
+                types, locations, sizes, edges_ind, ratios = predict_layout(datagraph, data_boundary)
+                print('done')
+                #SAVE
+                
+                #save as JSON
+                output_data = {
+                    "pdtype" : np.array(types).reshape(1,7).tolist()[0],
+                    "pdlocation" : np.array(locations).reshape(1,14).tolist()[0],
+                    "pdsizes" : np.array(sizes).reshape(1,7).tolist()[0],
+                    "pdedges" : np.array(edges_ind).reshape(1,36).tolist()[0],
+                    "pdratios" : np.array(ratios).reshape(1,7).tolist()[0],
+                    'boundary': data_boundary,
+                }
 
+                with open('layout.json', 'w' ) as f:
+                    json.dump(output_data, f)
+                print("layout exported")
+        except KeyboardInterrupt: 
+            print('\nDone') 
+            break 
+        #except: 
+        #    print(f'Unhandled error: {sys.exc_info()[0]}')

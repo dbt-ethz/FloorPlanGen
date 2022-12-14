@@ -36,7 +36,7 @@ Use only this folder to save files.
 3. download folder `python` from gitrepo
 4. create a new conda environment with:
 
-		conda create -n genmodel python=3.9 tensorflow==2.6.0 py7zr watchdog
+		conda create -n genmodel python=3.9 tensorflow==2.6.0 py7zr
 
 5. unzip the ML model
 
