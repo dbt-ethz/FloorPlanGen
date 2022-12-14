@@ -45,7 +45,8 @@ Use only this folder to save files.
 
 ## C. Rhino (skip for now)
 1. install `Rhino 7 for Windows - One-Time Evaluation` version 90 days from here: https://www.rhino3d.com/download/
-2. install lunchbox as follows. Open Rhino 7. Go to Tools->Package Manager...
+2. install `lunchbox` and `TT Toolbox` as follows. Open Rhino 7. Go to Tools->Package Manager...
+3. install and `Pufferfish` from https://www.food4rhino.com
 3. open Rhino once.
 
 # RUN
