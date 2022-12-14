@@ -32,16 +32,15 @@ Use only this folder to save files.
 ## B. Python (Skip for now)
 
 1. install miniconda in case you don't have it: https://docs.conda.io/projects/conda/en/latest/user-guide/install/windows.html
-2. update conda by navigate to the anaconda directory in the Miniconda shell and Run `conda update conda`
+2. update conda by navigating to the anaconda directory in the Miniconda shell and Run `conda update conda`
 3. download folder `python` from gitrepo
 4. create a new conda environment with:
 
-		conda env create -f genmodel.yaml
+		conda create -n genmodel python=3.9 tensorflow==2.6.0 pandas openpyxl py7zr watchdog
 
-5. complete package install with pip:
+5. unzip the ML model
 
-	pip install -r requirements.txt
-
+		python unzip_model.py
 
 
 ## C. Rhino (skip for now)

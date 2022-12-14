@@ -223,9 +223,11 @@ for i in range(5):
         elif i == 2:
             ind_bed1 = np.argmax(types_ind == node_type_seq[i])
         elif i == 3:
-            ind_bed2 = np.argmax(types_ind == node_type_seq[i])
-        elif i == 4:
-            ind_bed3 = np.argmax(types_ind == node_type_seq[i])
+            ind_bed2 = np.argmax(types_ind == node_type_seq[i]) +1
+        elif i == 4 and ind_bed2 == 0:
+            ind_bed3 = np.argmax(types_ind == node_type_seq[i]) +1
+        elif i == 4 and ind_bed2 != 0:
+            ind_bed3 = np.argmax(types_ind == node_type_seq[i]) +2
 
 pad_type = np.array(np.insert(types_ind,6,0,axis = 1),dtype=np.int32)
 get_location = np.expand_dims(decode_sequence(pad_type,door,bound,ind_kitchen,ind_bed1,ind_bed2,ind_bed3)[0,1:-1,:]/1000, axis=0)#np.expand_dims(loca, axis=0)#NodeList[ind][:,:2]
@@ -238,6 +240,22 @@ get_ratio = ratio_predictor_trained.predict([get_edge,get_size,get_location,get_
 ratios.append(get_ratio)
 edges_ind = np.argmax(edges, axis=4)
 
+print(list(types))
+#save as JSON
+output_data = {
+    "pdtype" : np.array(types).reshape(1,7).tolist()[0],
+    "pdlocation" : np.array(locations).reshape(1,14).tolist()[0],
+    "pdsizes" : np.array(sizes).reshape(1,7).tolist()[0],
+    "pdedges" : np.array(edges_ind).reshape(1,36).tolist()[0],
+    "pdratios" : np.array(ratios).reshape(1,7).tolist()[0],
+    'boundary': data_boundary,
+}
+
+with open('layout.json', 'w' ) as f:
+    json.dump(output_data, f)
+
+
+#export as excel
 writer = pd.ExcelWriter(os.path.join(current,'test2.xlsx'))
 pdtype = pd.DataFrame(np.array(types).reshape(1,7))
 pdlocation = pd.DataFrame(np.array(locations).reshape(1,14))
@@ -250,9 +268,6 @@ pdsizes.to_excel(writer,'page_3',float_format='%.5f',header=None,index=None)
 pdedges.to_excel(writer,'page_4',float_format='%.5f',header=None,index=None)
 pdratios.to_excel(writer,'page_5',float_format='%.5f',header=None,index=None)
 writer.save()
-
-
-    
 
 
 
