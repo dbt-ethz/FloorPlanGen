@@ -1,16 +1,22 @@
 import os
 import tensorflow as tf
 tf.compat.v1.enable_eager_execution()
-import tensorflow
+#import tensorflow
 from tensorflow import keras
 import numpy as np
 from tensorflow.keras import layers,Sequential
 from tensorflow.keras.models import Model,load_model
 from tensorflow.keras.layers import Input, Flatten, Dense, Lambda, Reshape, Concatenate, Embedding,Activation, LeakyReLU, ELU
 import json
-import pandas as pd
+#import pandas as pd
+
+import time
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
 
 current = os.getcwd()
+
+### CONSTANTS and PARAMETERS
 
 sequence_length = 8
 batch_size = 64
@@ -254,8 +260,11 @@ def predict_layout(datagraph, data_boundary):
     return types, locations, sizes, edges_ind, ratios
 
 
+# for monitoring the graph.json file
 
-
+class MyHandler(FileSystemEventHandler):
+    def on_modified(self, event):
+        print(f'event type: {event.event_type}  path : {event.src_path}')
 
 
 
@@ -265,20 +274,39 @@ def predict_layout(datagraph, data_boundary):
 
 if __name__ == "__main__":
     #load the models
+    print("loading the models....")
     type_predictor_trained, location_predictor_trained, size_predictor_trained, edge_predictor_trained, ratio_predictor_trained = load_models()
+    print("loaded.")
 
     #monitor changes
+    print("monitoring...")
     # watchdog: 
     # https://github.com/gorakhargosh/watchdog/issues/346
-    with open(os.path.join(current,'graph.json'), 'r') as f:
-        datagraph = json.load(f)
-    with open(os.path.join(current,'boundary.json'), 'r') as g:
-        data_boundary = json.load(g)
+    graph_file_path = os.path.join(current,'graph.json')
+    # with open(graph_file_path, 'r') as f:
+    #     datagraph = json.load(f)
+    
+    # with open(os.path.join(current,'boundary.json'), 'r') as g:
+    #     data_boundary = json.load(g)
+    
+    event_handler = MyHandler()
+    observer = Observer()
+    observer.schedule(event_handler, path=graph_file_path, recursive=False)
+    observer.start()
+
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        observer.stop()
+    observer.join()
 
     #PREDICT
+    print("predicting...")
     types, locations, sizes, edges_ind, ratios = predict_layout(datagraph, data_boundary)
-
+    print('done')
     #SAVE
+    
     #save as JSON
     output_data = {
         "pdtype" : np.array(types).reshape(1,7).tolist()[0],
@@ -291,7 +319,7 @@ if __name__ == "__main__":
 
     with open('layout.json', 'w' ) as f:
         json.dump(output_data, f)
-
+    print("layout exported")
     #export as excel
     # writer = pd.ExcelWriter(os.path.join(current,'test2.xlsx'))
     # pdtype = pd.DataFrame(np.array(types).reshape(1,7))
